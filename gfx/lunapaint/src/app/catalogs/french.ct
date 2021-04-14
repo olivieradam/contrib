@@ -27,6 +27,8 @@ Sauver
 MSG_MENU_SAVE_AS
 Sauver sous...
 ;
+MSG_MENU_SAVE_DT
+Sauver selon le type...
 MSG_MENU_REVERT
 Revenir
 ;
@@ -303,6 +305,12 @@ JPEG
 ;
 MSG_EXPORT_PNG
 PNG
+;
+MSG_EXPORT_TIFF
+TIFF
+;
+MSG_EXPORT_BMP
+BMP
 ;
 MSG_EXPORT_RAW64
 RAW64

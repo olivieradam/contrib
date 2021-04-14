@@ -23,6 +23,9 @@ Save project
 MSG_MENU_SAVE_AS (//)
 Save project as...
 ;
+MSG_MENU_SAVE_DT (//)
+Save datatype image...
+;
 MSG_MENU_REVERT (//)
 Revert
 ;
@@ -295,6 +298,12 @@ JPEG
 ;
 MSG_EXPORT_PNG (//)
 PNG
+;
+MSG_EXPORT_TIFF (//)
+TIFF
+;
+MSG_EXPORT_BMP (//)
+BMP
 ;
 MSG_EXPORT_RAW64 (//)
 RAW64

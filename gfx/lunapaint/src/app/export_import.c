@@ -48,7 +48,7 @@ struct Hook export_hook;
 struct Hook import_hook;
 struct Hook exportanimation_hook;
 
-static STRPTR exp_datatypes[]   = { NULL, NULL, NULL, NULL, NULL };
+static STRPTR exp_datatypes[]   = { NULL, NULL, NULL, NULL, NULL, NULL, NULL };
 static STRPTR exp_mode[]        = { NULL, NULL, NULL };
 static STRPTR exp_titles[]      = { NULL, NULL, NULL };
 static STRPTR exp_anim_mode[]   = { NULL, NULL, NULL };
@@ -96,8 +96,18 @@ HOOKPROTONHNO(export_func, void, int *param)
     {
         exportPNG ( globalActiveCanvas->width, globalActiveCanvas->height, buffer, filename );
     }
-    // Save in RAW (64-bit) format
+    // Export with TIFF datatype
     else if ( datatype == 2 )
+    {
+        exportDT ( globalActiveCanvas->width, globalActiveCanvas->height, buffer, filename, "tiff" );
+    }
+    // Export with BMP datatype
+    else if ( datatype == 3 )
+    {
+        exportDT ( globalActiveCanvas->width, globalActiveCanvas->height, buffer, filename, "bmp" );
+    }
+    // Save in RAW (64-bit) format
+    else if ( datatype == 4 )
     {
         /*BPTR myfile;
         if ( ( myfile = Open ( filename, MODE_READWRITE ) ) != NULL )
@@ -109,7 +119,7 @@ HOOKPROTONHNO(export_func, void, int *param)
         printf ( "64-bit export temporarily disabled.\n" );
     }
     // Save another in raw format
-    else if ( datatype == 3 )
+    else if ( datatype == 5 )
     {
         BPTR myfile;
         if ( ( myfile = Open ( filename, MODE_NEWFILE ) ) != BNULL )
@@ -174,7 +184,7 @@ unsigned int *generateExportableBuffer ( struct oCanvas *canvas, int mode, int d
             c64 = ( struct rgba64 ){ c64.a, c64.b, c64.g, c64.r };
 
             // Set the colors in 32-but order
-            // datatype 0 is JPEG
+            // datatype 0 is JPEG, 1 is PNG, 2 is TIFF, 3 is BMP
             if ( datatype == 0 )
             {
                 buffer[ i ] = *( unsigned int *)&( ( struct rgba32 ){
@@ -188,6 +198,20 @@ unsigned int *generateExportableBuffer ( struct oCanvas *canvas, int mode, int d
                 buffer[ i ] = *( unsigned int *)&( ( struct rgba32 ){
                     ( double )c64.r / 256, ( double )c64.g / 256,
                     ( double )c64.b / 256, ( double )c64.a / 256
+                } );
+            }
+	    else if ( datatype == 2 )
+            {
+                buffer[ i ] = *( unsigned int *)&( ( struct rgba32 ){
+                    ( double )c64.a / 256, ( double )c64.r / 256,
+                    ( double )c64.g / 256, ( double )c64.b / 256
+                } );
+            }
+	    else if ( datatype == 3 )
+            {
+                buffer[ i ] = *( unsigned int *)&( ( struct rgba32 ){
+                    ( double )c64.a / 256, ( double )c64.r / 256,
+                    ( double )c64.g / 256, ( double )c64.b / 256
                 } );
             }
             // Others
@@ -220,11 +244,15 @@ unsigned int *generateExportableBuffer ( struct oCanvas *canvas, int mode, int d
             struct rgba32 c = *( struct rgba32 *)&buffer[ i ];
 
             // Set the colors in 32-bit order
-            // datatype 0 is JPEG
+            // datatype 0 is JPEG, 1 is PNG, 2 is TIFF, 3 is BMP
             if ( datatype == 0 )
                 c = ( struct rgba32 ){ c.a, c.r, c.g, c.b };
             else if ( datatype == 1 )
                 c = ( struct rgba32 ){ c.r, c.g, c.b, c.a };
+	    else if ( datatype == 2 )
+                c = ( struct rgba32 ){ c.a, c.r, c.g, c.b };
+	    else if ( datatype == 3 )
+                c = ( struct rgba32 ){ c.a, c.r, c.g, c.b };
             else
                 c = ( struct rgba32 ){ c.b, c.g, c.r, c.a };
 
@@ -238,8 +266,10 @@ void makeExportWindow ( )
 {
     exp_datatypes[0] = _(MSG_EXPORT_JPEG);
     exp_datatypes[1] = _(MSG_EXPORT_PNG);
-    exp_datatypes[2] = _(MSG_EXPORT_RAW64);
-    exp_datatypes[3] = _(MSG_EXPORT_RAW32);
+    exp_datatypes[2] = _(MSG_EXPORT_TIFF);
+    exp_datatypes[3] = _(MSG_EXPORT_BMP);
+    exp_datatypes[4] = _(MSG_EXPORT_RAW64);
+    exp_datatypes[5] = _(MSG_EXPORT_RAW32);
 
     exp_mode[0] = _(MSG_EXPORT_ACTIV_LAYER);
     exp_mode[1] = _(MSG_EXPORT_FLAT_LAYER);
@@ -632,6 +662,7 @@ void exportDT ( int w, int h, unsigned int *buffer, unsigned char *filename, con
 
         dtObj.MethodID = PDTM_WRITEPIXELARRAY;
         dtObj.pbpa_PixelFormat = PBPAFMT_ARGB;
+	//dtObj.pbpa_PixelFormat = PBPAFMT_RGB;
         dtObj.pbpa_PixelArrayMod = w;
         dtObj.pbpa_Left = 0;
         dtObj.pbpa_Width = w;

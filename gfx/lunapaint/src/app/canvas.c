@@ -979,10 +979,14 @@ void addCanvaswindow (
             sizeof ( struct RGBitmapData ),
             RGBitmapDispatcher
         );
-
-    canvases->win = MUI_NewObject ( MUIC_Window,
-        MUIA_Window_Title, __(MSG_CANVAS_UNNAMED),
+	
+        canvases->win = MUI_NewObject ( MUIC_Window,
+        MUIA_Window_Title, __(MSG_CANVAS_UNNAMED),	
         MUIA_Window_SizeGadget, TRUE,
+	//MUIA_Window_Width = Width of window
+        MUIA_Window_Width, ( IPTR )width,
+        //MUIA_Window_Height = Height of window
+        MUIA_Window_Height, ( IPTR )height,
         MUIA_Window_Screen, ( IPTR )lunaPubScreen,
         MUIA_Window_ID, MAKE_ID('L','P','W','C'),
         MUIA_Window_MouseObject, ( IPTR )canvases->mouse,
@@ -1410,11 +1414,12 @@ void importImageRAW ( unsigned int w, unsigned int h, unsigned long long int *bu
 
 BOOL loadDatatypeImage ( )
 {
+    char *tmpfilename = NULL;
     char *filename = getFilename ( );
     BOOL result = FALSE;
 
     if ( filename != NULL )
-    {
+    {	
         unsigned int size = getFilesize ( filename );
 
         if ( size > 0 )
@@ -1492,8 +1497,13 @@ BOOL loadDatatypeImage ( )
 
                     FreeVec ( bitmap );
                     DisposeDTObject ( myDtObj );
-                    set ( globalActiveWindow->win, MUIA_Window_Title, ( STRPTR )filename );
-                    set ( globalActiveWindow->projName, MUIA_String_Contents, ( STRPTR )filename );
+		    /*
+                    the window class doesn't copy the title so we must
+                    create a copy by ourselves to avoid corrupt window title
+                    */                    
+                    tmpfilename = StrDup(filename); 
+                    set ( globalActiveWindow->win, MUIA_Window_Title, tmpfilename );
+                    set ( globalActiveWindow->projName, MUIA_String_Contents, tmpfilename );
                     result = TRUE;
                 }
                 else printf ( "Not enough memory.\n" );
@@ -1501,6 +1511,7 @@ BOOL loadDatatypeImage ( )
 
         }
         FreeVec ( filename );
+        if (tmpfilename) FreeVec( tmpfilename );
     }
     return result;
 }
